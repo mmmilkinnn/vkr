@@ -1,0 +1,87 @@
+erDiagram
+    direction TB
+    Project ||--o{ Document : "документы"
+    Service o|--o{ Document : "уточняет привязку"
+    DocumentTemplate ||--o{ DocumentVersion : "шаблон версии"
+    Document ||--o{ DocumentVersion : "версии"
+    User ||--o{ DocumentVersion : "создал"
+    Project ||--o{ Correspondence : "переписка"
+    DocumentVersion o|--o{ Correspondence : "исходящий документ"
+    Attachment o|--o{ Correspondence : "входящий файл"
+    User ||--o{ ImportBatch : "подтвердил"
+    ImportBatch ||--o{ ExternalLink : "сопоставил"
+    User ||--o{ AuditEvent : "изменил"
+    Project {
+        bigint id PK
+    }
+    Service {
+        bigint id PK
+        bigint contract_id FK
+    }
+    User {
+        bigint id PK
+        string role
+    }
+    Document {
+        bigint id PK
+        bigint project_id FK
+        bigint service_id FK
+        string kind
+    }
+    DocumentTemplate {
+        bigint id PK
+        string kind
+        int version
+        json required_fields
+        string template_path
+    }
+    DocumentVersion {
+        bigint id PK
+        bigint document_id FK
+        bigint template_id FK
+        bigint author_id FK
+        int number
+        text source_notes
+        text body
+        string state
+        string file_path
+        datetime reviewed_at
+    }
+    Correspondence {
+        bigint id PK
+        bigint project_id FK
+        bigint outgoing_version_id FK
+        bigint incoming_attachment_id FK
+        string direction
+        datetime event_at
+        bigint confirmed_by FK
+    }
+    Attachment {
+        bigint id PK
+        bigint project_id FK
+        string protected_path
+    }
+    ImportBatch {
+        bigint id PK
+        bigint user_id FK
+        string source_file_hash
+        datetime confirmed_at
+        json summary
+    }
+    ExternalLink {
+        bigint id PK
+        bigint last_batch_id FK
+        string source
+        string entity_type
+        string external_id
+        bigint local_id
+    }
+    AuditEvent {
+        bigint id PK
+        bigint user_id FK
+        string entity_type
+        bigint entity_id
+        json before_after
+        datetime created_at
+        string request_id
+    }

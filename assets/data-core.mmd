@@ -1,0 +1,95 @@
+erDiagram
+    direction TB
+    Client ||--o{ Project : "имеет"
+    Project ||--o{ Contract : "включает"
+    Contract ||--o{ Service : "содержит"
+    Service ||--o{ ServiceStage : "этапы"
+    Service ||--o{ InputItem : "требует"
+    Project ||--o{ Attachment : "хранит"
+    InputItem o|--o{ Attachment : "имеет файлы"
+    User o|--o{ InputItem : "проверил"
+    Service ||--o| QueueItem : "активное назначение"
+    Ecologist ||--o{ QueueItem : "выполняет"
+    Ecologist ||--o{ WeeklyCapacity : "доступность"
+    Client {
+        bigint id PK
+        string name
+        string inn
+        text verified_requisites
+    }
+    Project {
+        bigint id PK
+        bigint client_id FK
+        string title
+        boolean archived
+    }
+    Contract {
+        bigint id PK
+        bigint project_id FK
+        string number
+        date signed_at
+        int version
+    }
+    Service {
+        bigint id PK
+        bigint contract_id FK
+        string kind
+        string state
+        date contract_due
+        date planned_due
+        text pause_reason
+        string result_path
+        int version
+    }
+    ServiceStage {
+        bigint id PK
+        bigint service_id FK
+        string title
+        int position
+        date planned_due
+        datetime completed_at
+    }
+    InputItem {
+        bigint id PK
+        bigint service_id FK
+        string title
+        boolean required
+        string check_state
+        text comment
+        bigint checked_by FK
+        datetime checked_at
+    }
+    Attachment {
+        bigint id PK
+        bigint project_id FK
+        bigint input_item_id FK
+        string protected_path
+        string checksum
+    }
+    User {
+        bigint id PK
+        string login
+        string role
+        string password_hash
+    }
+    Ecologist {
+        bigint id PK
+        string name
+        boolean active
+    }
+    WeeklyCapacity {
+        bigint id PK
+        bigint ecologist_id FK
+        date week_start
+        decimal available_hours
+    }
+    QueueItem {
+        bigint id PK
+        bigint service_id FK
+        bigint ecologist_id FK
+        int position
+        int priority
+        date week_start
+        decimal planned_hours
+        text overload_reason
+    }
