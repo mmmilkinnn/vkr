@@ -1,0 +1,33 @@
+flowchart TB
+    manager["Менеджер / администратор<br/>Человек: браузер"]
+    bitrix["Битрикс24<br/>Внешняя система: источник выгрузки"]
+    textservice["Сервис обработки текста<br/>Внешняя система: черновик по заметкам"]
+    subgraph system["Информационная система управления экологическими проектами"]
+        app["Веб-приложение<br/>Python / Django, HTML, CSS, JavaScript<br/>Права, услуги, импорт, очередь, документы<br/>FR-01-FR-12, NFR-01, 02, 03, 07"]
+        db[("База данных<br/>PostgreSQL<br/>Связи, версии, журнал<br/>NFR-02")]
+        files["Закрытое файловое хранилище<br/>Постоянный том<br/>Материалы, шаблоны, версии DOCX<br/>FR-12, NFR-03, 06"]
+        backup["Задание резервирования<br/>Копирование БД и файлов<br/>Ежесуточно, согласованный снимок<br/>NFR-04"]
+        metrics["Сбор метрик<br/>Prometheus<br/>Ошибки, задержки, импорт, возраст копии<br/>NFR-05"]
+        dashboard["Панель мониторинга<br/>Grafana<br/>Состояние приложения и сигналы<br/>NFR-05"]
+        logs["Технические журналы<br/>Закрытое хранилище<br/>Ошибки и request_id без содержимого писем"]
+    end
+    separate["Отдельное защищённое хранилище копий<br/>Вне рабочего сервера<br/>NFR-04"]
+    manager -->|"HTTPS: карточки, файлы, подтверждения"| app
+    bitrix -->|"Файл через менеджера, без API-синхронизации"| app
+    app -->|"SQL: транзакции, постоянный том"| db
+    app -->|"Чтение / запись, проверка доступа"| files
+    app -->|"HTTPS: обезличенные заметки, тайм-аут 30 с"| textservice
+    textservice -->|"Черновик или ошибка"| app
+    metrics -->|"HTTP: чтение закрытого /metrics"| app
+    dashboard -->|"Запрос метрик"| metrics
+    app -->|"Структурированные записи"| logs
+    backup -->|"Согласованная копия"| db
+    backup -->|"Согласованная копия"| files
+    backup -->|"Защищённая передача"| separate
+    backup -->|"Время успешной копии"| app
+    manager -->|"HTTPS: просмотр по правам"| dashboard
+    classDef application fill:#e5efff,stroke:#285ea8,color:#102845
+    classDef external fill:#f0f0f0,stroke:#777,color:#222
+    class app,backup,metrics,dashboard application
+    class bitrix,textservice,separate external
+    style system fill:#fff,stroke:#52677d,stroke-dasharray:6 4

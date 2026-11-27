@@ -1,0 +1,43 @@
+stateDiagram-v2
+    direction TB
+    state "Незавершённая услуга" as active {
+        state "Зарегистрирована" as registered
+        state "Ожидание данных" as waiting
+        state "Готова" as ready
+        state "В очереди" as queued
+        state "В работе" as working
+        state "Приостановлена" as paused
+        [*] --> registered
+        registered --> waiting: Комплект неполон
+        registered --> ready: Комплект проверен
+        waiting --> waiting: Получено, ещё не проверено
+        waiting --> ready: Все обязательные данные проверены
+        ready --> waiting: Материал требует уточнения
+        ready --> queued: Эколог, часы и позиция согласованы
+        queued --> waiting: Утрачена комплектность, позиция снята
+        queued --> working: Подтверждено начало
+        queued --> paused: Причина указана, позиция снята
+        working --> paused: Препятствие, причина указана
+        paused --> waiting: Возобновление, комплект неполон
+        paused --> ready: Возобновление, комплект проверен
+        note right of queued
+            FR-06: проверить доступность.
+            Перегрузку подтвердить с причиной.
+        end note
+        note right of paused
+            FR-05, 07: срок не меняется.
+            Просрочка остаётся видимой.
+        end note
+    }
+    state "Завершена" as completed
+    state "Отменена" as cancelled
+    [*] --> active
+    working --> completed: Результат сохранён, завершение подтверждено
+    active --> cancelled: Решение менеджера и основание
+    completed --> [*]
+    cancelled --> [*]
+    note right of completed
+        Завершение и отмена снимают позицию.
+        FR-11, NFR-02: состояние, очередь
+        и журнал меняются атомарно.
+    end note
